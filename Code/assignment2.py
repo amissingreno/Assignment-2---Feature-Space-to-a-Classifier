@@ -226,6 +226,47 @@ def mergeThreeFeatureVectorsSliding(featureVector1, featureVector2, featureVecto
     return completeVector
     #return fs2.values.tolist()
 '''
+def split8020dataset(NN, mergedDataset, fileNameX, fileNameY):
+
+    # Label/Response set
+    y = mergedDataset[NN]
+
+    # Drop the labels and store the features
+    mergedDataset.drop(NN,axis=1,inplace=True)
+    X = mergedDataset
+
+    # Generate feature matrix using a Numpy array
+    tmp = np.array(X)
+    X1 = tmp[:,0:NN]
+
+    # Generate label matrix using Numpy array
+    Y1 = np.array(y)
+
+
+    # Split the data into 80:20
+    row, col = X.shape
+
+    TR = round(row*0.8)
+    TT = row-TR
+
+    # Training with 80% data
+    X1_train = X1[0:TR-1,:]
+    Y1_train = Y1[0:TR-1]
+    
+    #Save the 80% train datasets
+    convertToDataFrameAndSaveTrain(X1_train, fileNameX)
+    convertToDataFrameAndSaveTrain(Y1_train, fileNameY)
+    
+    #Create 20% data subset 
+    X1_test = X1[TR:row,:]
+    Y1_test = Y1[TR:row]
+    
+    #Save the 20% test datasets
+    convertToDataFrameAndSaveTest(X1_test, fileNameX)
+    convertToDataFrameAndSaveTest(Y1_test, fileNameY)
+    
+    return X1_train, Y1_train, X1_test, Y1_test
+    
 def convertToDataFrameAndSaveTrain(array, fileID):
     df = pd.DataFrame(array)
     df.to_csv('C:/Users/rober/OneDrive/Desktop\Spring Semester 2024/CSC 410 Big Data and Machine Learning/Assignment 2/Data/' + fileID + '_train.csv', index=False, header=False)
@@ -247,7 +288,7 @@ def saveActualAndPredictedTest(actual, predicted, fileID):
     df.to_csv('C:/Users/rober/OneDrive/Desktop/Spring Semester 2024/CSC 410 Big Data and Machine Learning/Assignment 2/Data/' + fileID + '_y_and_yhat.csv', index=False, header=False)
 # Use randomized search function to determine the best number of trees in forest and depth of the tree
 def randomForestBestParameters(X_train, Y_train, X_test):
-    parameter_distributions = {'n_estimators': range(1,100),'max_depth': range(1,25)}
+    parameter_distributions = {'n_estimators': range(100,500),'max_depth': range(1,25)}
     rf = RandomForestClassifier()
     random_search = RandomizedSearchCV(rf, param_distributions=parameter_distributions)
 
@@ -663,113 +704,18 @@ cardinalRobinMerged = pd.read_csv("C:/Users/rober/OneDrive/Desktop\Spring Semest
 sparrowRobinMerged = pd.read_csv("C:/Users/rober/OneDrive/Desktop\Spring Semester 2024/CSC 410 Big Data and Machine Learning/Assignment 2/Data/image01-3.csv", header=None)
 cardinalSparrowRobinMerged = pd.read_csv("C:/Users/rober/OneDrive/Desktop\Spring Semester 2024/CSC 410 Big Data and Machine Learning/Assignment 2/Data/image012-1.csv", header=None)
 
-NN = 256
-#Label repsonse set for each merged dataset
-y1 = cardinalSparrowMerged[NN]
-y2 = cardinalRobinMerged[NN]
-y3 = sparrowRobinMerged[NN]
-y4 = cardinalSparrowRobinMerged[NN]
-
-# Drop the labels and store the features
-cardinalSparrowMerged.drop(NN, axis=1, inplace=True)
-cardinalRobinMerged.drop(NN, axis=1, inplace=True)
-sparrowRobinMerged.drop(NN, axis=1, inplace=True)
-cardinalSparrowRobinMerged.drop(NN, axis=1, inplace=True)
-CS = cardinalSparrowMerged
-CR = cardinalRobinMerged
-SR = sparrowRobinMerged
-CSR = cardinalSparrowRobinMerged
-
-# Generate feature matrix using a Numpy array
-tmp1 = np.array(CS)
-tmp2 = np.array(CR)
-tmp3 = np.array(SR)
-tmp4 = np.array(CSR)
-
-CS_X1 = tmp1[:, 0:NN]
-CR_X1 = tmp2[:, 0:NN]
-SR_X1 = tmp3[:, 0:NN]
-CSR_X1 =tmp4[:, 0:NN]
-
-# Generate label matrix using Numpy array
-CS_Y1 = np.array(y1)
-CR_Y1 = np.array(y2)
-SR_Y1 = np.array(y3)
-CSR_Y1 = np.array(y4)
-
-# Get size of datasets and set row/column sizes
-row1, col1 = CS.shape
-row2, col2 = CR.shape
-row3, col3 = SR.shape
-row4, col4 = CSR.shape
-
-# Determine 80% of datasets
-TR1 = round(row1*0.8)
-TT1 = row1-TR1
-TR2 = round(row2*0.8)
-TT2 = row2-TR2
-TR3 = round(row3*0.8)
-TT3 = row3-TR3
-TR4 = round(row4*0.8)
-TT4 = row4-TR4
-
-#Create 80% data subset 
-CS_X1_80 = CS_X1[0:TR1-1, :]
-CS_Y1_80 = CS_Y1[0:TR1-1]
-
-CR_X1_80 = CR_X1[0:TR2-1, :]
-CR_Y1_80 = CR_Y1[0:TR2-1]
-
-SR_X1_80 = SR_X1[0:TR3-1, :]
-SR_Y1_80 = SR_Y1[0:TR3-1]
-
-CSR_X1_80 = CSR_X1[0:TR4-1, :]
-CSR_Y1_80 = CSR_Y1[0: TR4-1]
-
-#Save the 80% train datasets
-convertToDataFrameAndSaveTrain(CS_X1_80, 'CS_X1')
-convertToDataFrameAndSaveTrain(CS_Y1_80, 'CS_Y1')
-
-convertToDataFrameAndSaveTrain(CR_X1_80, 'CR_X1')
-convertToDataFrameAndSaveTrain(CR_Y1_80, 'CR_Y1')
-
-convertToDataFrameAndSaveTrain(SR_X1_80, 'SR_X1')
-convertToDataFrameAndSaveTrain(SR_Y1_80, 'SR_Y1')
-
-convertToDataFrameAndSaveTrain(CSR_X1_80, 'CSR_X1')
-convertToDataFrameAndSaveTrain(CSR_Y1_80, 'CSR_Y1')
-
-#Create 20% data subset
-CS_X1_20 = CS_X1[TR1:row1,:]
-CS_Y1_20 = CS_Y1[TR1:row1]
-
-CR_X1_20 = CR_X1[TR2:row2, :]
-CR_Y1_20 = CR_Y1[TR2:row2]
-
-SR_X1_20 = SR_X1[TR3:row3,:]
-SR_Y1_20 = SR_Y1[TR3:row3]
-
-CSR_X1_20 = CSR_X1[TR4:row4,:]
-CSR_Y1_20 = CSR_Y1[TR4:row4]
-
-#Save 20% test cardinal/sparrow dataset
-convertToDataFrameAndSaveTest(CS_X1_20, 'CS_X1')
-convertToDataFrameAndSaveTest(CS_Y1_20, 'CS_Y1')
-
-convertToDataFrameAndSaveTest(CR_X1_20, 'CR_X1')
-convertToDataFrameAndSaveTest(CR_Y1_20, 'CR_Y1')
-
-convertToDataFrameAndSaveTest(SR_X1_20, 'SR_X1')
-convertToDataFrameAndSaveTest(SR_Y1_20, 'SR_Y1')
-
-convertToDataFrameAndSaveTest(CSR_X1_20, 'CSR_X1')
-convertToDataFrameAndSaveTest(CSR_Y1_20, 'CSR_Y1')
+# Call to function that splits datasets 80% train and 20% test
+CS_X1_80, CS_Y1_80, CS_X1_20, CS_Y1_20 = split8020dataset(256, cardinalSparrowMerged, 'CS_X', 'CS_Y')
+CR_X1_80, CR_Y1_80, CR_X1_20, CR_Y1_20 = split8020dataset(256, cardinalRobinMerged, 'CR_X', 'CR_Y')
+SR_X1_80, SR_Y1_80, SR_X1_20, SR_Y1_20 = split8020dataset(256, sparrowRobinMerged, 'SR_X', 'SR_Y')
+CSR_X1_80, CSR_Y1_80, CSR_X1_20, CSR_Y1_20 = split8020dataset(256, cardinalSparrowRobinMerged, 'CSR_X', 'CSR_Y')
 
 #Feature selections
 a = 204
 b = 121
 c = 7
 d = 26
+
 
 # Display histogram of two cardinal/sparrow features within train and test categories
 plt.hist([CS_X1_80[:, a], CS_X1_80[:, b]], label=['Feature #%i'  %a, 'Feature #%i' %b])
@@ -783,9 +729,10 @@ plt.show()
 
 print("The mean for feature", a, "is:", np.mean(CS_X1_80[:, a]), "in the cardinal/sparrow train dataset")
 print("The mean for feature", b, "is:", np.mean(CS_X1_80[:, b]), "in the cardinal/sparrow train dataset")
-print("The mean for feature", c, "is:", np.mean(CS_X1_20[:, c]), "in the cardinal/sparrow test dataset")
-print("The mean for feature", d, "is:", np.mean(CS_X1_20[:, d]), "in the cardinal/sparrow test dataset")
+print("The mean for feature", c, "is:", np.mean(CS_X1_80[:, c]), "in the cardinal/sparrow test dataset")
+print("The mean for feature", d, "is:", np.mean(CS_X1_80[:, d]), "in the cardinal/sparrow test dataset")
 print()
+
 
 # Display histogram of two cardinal/robin features within train and test categories
 plt.hist([CR_X1_80[:, a], CR_X1_80[:, b]], label=['Feature #%i'  %a, 'Feature #%i' %b])
@@ -799,8 +746,8 @@ plt.show()
 
 print("The mean for feature", a, "is:", np.mean(CR_X1_80[:, a]), "in the cardinal/robin train dataset")
 print("The mean for feature", b, "is:", np.mean(CR_X1_80[:, b]), "in the cardinal/robin train dataset")
-print("The mean for feature", c, "is:", np.mean(CR_X1_20[:, c]), "in the cardinal/robin test dataset")
-print("The mean for feature", d, "is:", np.mean(CR_X1_20[:, d]), "in the cardinal/robin test dataset")
+print("The mean for feature", c, "is:", np.mean(CR_X1_80[:, c]), "in the cardinal/robin test dataset")
+print("The mean for feature", d, "is:", np.mean(CR_X1_80[:, d]), "in the cardinal/robin test dataset")
 print()
 
 # Display histogram of two sparrow/robin features within train and test categories
@@ -918,14 +865,14 @@ print("Our_Sensitivity_Score:",Sensitivity)
 
 Specificity = 1/(1+(FP/TN))
 print("Our_Specificity_Score:",Specificity)
-print()
 
 print("BuiltIn_Accuracy:",metrics.accuracy_score(CS_y_test, CS_yhat_test))
 print("BuiltIn_Precision:",metrics.precision_score(CS_y_test, CS_yhat_test))
 print("BuiltIn_Sensitivity (recall):",metrics.recall_score(CS_y_test, CS_yhat_test))
 print()
 
-print(metrics.classification_report(CS_y_test, CS_yhat_test))
+# Classification report from sklearn library
+#print(metrics.classification_report(CS_y_test, CS_yhat_test))
 
 ########################################### CARDINAL AND ROBIN LASSO REGRESSION
 #Training with 80% data.
@@ -970,14 +917,14 @@ print("Our_Sensitivity_Score:",Sensitivity)
 
 Specificity = 1/(1+(FP/TN))
 print("Our_Specificity_Score:",Specificity)
-print()
 
 print("BuiltIn_Accuracy:",metrics.accuracy_score(CR_y_test, CR_yhat_test))
 print("BuiltIn_Precision:",metrics.precision_score(CR_y_test, CR_yhat_test, pos_label=2))
 print("BuiltIn_Sensitivity (recall):",metrics.recall_score(CR_y_test, CR_yhat_test, pos_label=2))
 print()
 
-print(metrics.classification_report(CR_y_test, CR_yhat_test))
+# Classification report from sklearn library
+#print(metrics.classification_report(CR_y_test, CR_yhat_test))
 
 ############################################ SPARROW AND ROBIN LASSO REGRESSION
 #Training with 80% data.
@@ -1021,14 +968,14 @@ print("Our_Sensitivity_Score:",Sensitivity)
 
 Specificity = 1/(1+(FP/TN))
 print("Our_Specificity_Score:",Specificity)
-print()
 
 print("BuiltIn_Accuracy:",metrics.accuracy_score(SR_y_test, SR_yhat_test))
 print("BuiltIn_Precision:",metrics.precision_score(SR_y_test, SR_yhat_test))
 print("BuiltIn_Sensitivity (recall):",metrics.recall_score(SR_y_test, SR_yhat_test))
 print()
 
-print(metrics.classification_report(SR_y_test, SR_yhat_test))
+# Classification report from sklearn library
+#print(metrics.classification_report(SR_y_test, SR_yhat_test))
 
 ################################# CARDINAL, SPARROW, AND ROBIN LASSO REGRESSION
 CSR_X1_train = CSR_X1_80
@@ -1051,10 +998,10 @@ saveConfusionMatrix(CC4_test, 'CSR_lasso')
 ConfusionMatrixDisplay(CC4_test).plot()
 
 #Classifier 0
-# TN = CC4_test[1,1] + CC4_test[1,2] + CC4_test[2,1] + CC4_test[2,2]
-# FP = CC4_test[1,0] + CC4_test[2,0]
-# FN = CC4_test[0,1] + CC4_test[0,2]
-# TP = CC4_test[0,0]
+TN = CC4_test[1,1] + CC4_test[1,2] + CC4_test[2,1] + CC4_test[2,2]
+FP = CC4_test[1,0] + CC4_test[2,0]
+FN = CC4_test[0,1] + CC4_test[0,2]
+TP = CC4_test[0,0]
 #Classifier 1
 # TN = CC4_test[0,0] + CC4_test[0,2] + CC4_test[2,0] + CC4_test[2,2]
 # FP = CC4_test[0,1] + CC4_test[2,1]
@@ -1066,10 +1013,10 @@ ConfusionMatrixDisplay(CC4_test).plot()
 # FN = CC4_test[2,0] + CC4_test[2,1]
 # TP = CC4_test[2,2]
 #Classifiers combined
-TN = CC4_test[1,1] + CC4_test[1,2] + CC4_test[2,1] + CC4_test[2,2] + CC4_test[0,0] + CC4_test[0,2] + CC4_test[2,0] + CC4_test[2,2] +CC4_test[0,0] + CC4_test[0,1] + CC4_test[1,0] + CC4_test[1,1]
-FP = CC4_test[1,0] + CC4_test[2,0] + CC4_test[0,1] + CC4_test[2,1] +  CC4_test[0,2] + CC4_test[1,2]
-FN = CC4_test[0,1] + CC4_test[0,2] + CC4_test[1,0] + CC4_test[1,2] + CC4_test[2,0] + CC4_test[2,1]
-TP = CC4_test[0,0] + CC4_test[1,1] + CC4_test[2,2]
+# TN = CC4_test[1,1] + CC4_test[1,2] + CC4_test[2,1] + CC4_test[2,2] + CC4_test[0,0] + CC4_test[0,2] + CC4_test[2,0] + CC4_test[2,2] +CC4_test[0,0] + CC4_test[0,1] + CC4_test[1,0] + CC4_test[1,1]
+# FP = CC4_test[1,0] + CC4_test[2,0] + CC4_test[0,1] + CC4_test[2,1] +  CC4_test[0,2] + CC4_test[1,2]
+# FN = CC4_test[0,1] + CC4_test[0,2] + CC4_test[1,0] + CC4_test[1,2] + CC4_test[2,0] + CC4_test[2,1]
+# TP = CC4_test[0,0] + CC4_test[1,1] + CC4_test[2,2]
 
 FPFN = FP+FN
 TPTN = TP+TN
@@ -1086,14 +1033,14 @@ print("Our_Sensitivity_Score:",Sensitivity)
 
 Specificity = 1/(1+(FP/TN))
 print("Our_Specificity_Score:",Specificity)
-print()
 
 print("BuiltIn_Accuracy:", metrics.accuracy_score(CSR_y_test, CSR_yhat_test))
 print("BuiltIn_Precision:",metrics.precision_score(CSR_y_test, CSR_yhat_test, average='macro'))
 print("BuiltIn_Sensitivity (recall):",metrics.recall_score(CSR_y_test, CSR_yhat_test, average='macro'))
 print()
 
-print(metrics.classification_report(CSR_y_test, CSR_yhat_test))
+# Classification report from sklearn library
+#print(metrics.classification_report(CSR_y_test, CSR_yhat_test))
 
 ############################################ CARDINAL AND SPARROW RANDOM FOREST
 
@@ -1101,10 +1048,10 @@ rf1 = RandomForestClassifier(n_estimators=250)
 rf1.fit(CS_X1_train, CS_Y1_train)
 
 CS_RF_yhat_test = rf1.predict(CS_X1_test)
-#CS_RF_yhat_test = np.where(CS_RF_yhat_test > 0.5, 1, 0)
+CS_RF_yhat_test = np.where(CS_RF_yhat_test > 0.5, 1, 0)
 
 # Call to function that randomizes the parameters for the RandomForestClassifier
-# CS_RF_yhat_test = randomForestBestParameters(CS_X1_train, CS_Y1_train, CS_X1_test)
+#CS_RF_yhat_test = randomForestBestParameters(CS_X1_train, CS_Y1_train, CS_X1_test)
 
 #Save the actual and predicted values.
 saveActualAndPredictedTest(CS_Y1_20, CS_RF_yhat_test, 'CS_rand_forest')
@@ -1133,14 +1080,14 @@ print("Our_Sensitivity_Score:",Sensitivity)
 
 Specificity = 1/(1+(FP/TN))
 print("Our_Specificity_Score:",Specificity)
-print()
 
 print("BuiltIn_Accuracy:", metrics.accuracy_score(CS_y_test, CS_RF_yhat_test))
 print("BuiltIn_Precision:",metrics.precision_score(CS_y_test, CS_RF_yhat_test))
 print("BuiltIn_Sensitivity (recall):",metrics.recall_score(CS_y_test, CS_RF_yhat_test))
 print()
 
-print(metrics.classification_report(CS_y_test, CS_RF_yhat_test))
+# Classification report from sklearn library
+#print(metrics.classification_report(CS_y_test, CS_RF_yhat_test))
 
 ############################################## CARDINAL AND ROBIN RANDOM FOREST
 
@@ -1151,7 +1098,7 @@ CR_RF_yhat_test = rf2.predict(CR_X1_test)
 #CR_yhat_test = np.where(CR_yhat_test > 1, 2, 0)
 
 # Call to function that randomizes the parameters for the RandomForestClassifier
-# CR_RF_yhat_test = randomForestBestParameters(CR_X1_train, CR_Y1_train, CR_X1_test)
+#CR_RF_yhat_test = randomForestBestParameters(CR_X1_train, CR_Y1_train, CR_X1_test)
 
 #Save the actual and predicted values.
 saveActualAndPredictedTest(CR_Y1_20, CR_RF_yhat_test, 'CR_rand_forest')
@@ -1180,14 +1127,14 @@ print("Our_Sensitivity_Score:",Sensitivity)
 
 Specificity = 1/(1+(FP/TN))
 print("Our_Specificity_Score:",Specificity)
-print()
 
 print("BuiltIn_Accuracy:", metrics.accuracy_score(CR_y_test, CR_RF_yhat_test))
 print("BuiltIn_Precision:",metrics.precision_score(CR_y_test, CR_RF_yhat_test, pos_label=2))
 print("BuiltIn_Sensitivity (recall):",metrics.recall_score(CR_y_test, CR_RF_yhat_test, pos_label=2))
 print()
 
-print(metrics.classification_report(CR_y_test, CR_RF_yhat_test))
+# Classification report from sklearn library
+#print(metrics.classification_report(CR_y_test, CR_RF_yhat_test))
 
 ############################################### SPARROW AND ROBIN RANDOM FOREST
 
@@ -1227,14 +1174,14 @@ print("Our_Sensitivity_Score:",Sensitivity)
 
 Specificity = 1/(1+(FP/TN))
 print("Our_Specificity_Score:",Specificity)
-print()
 
 print("BuiltIn_Accuracy:", metrics.accuracy_score(SR_y_test, SR_RF_yhat_test))
 print("BuiltIn_Precision:",metrics.precision_score(SR_y_test, SR_RF_yhat_test))
 print("BuiltIn_Sensitivity (recall):",metrics.recall_score(SR_y_test, SR_RF_yhat_test))
 print()
 
-print(metrics.classification_report(SR_y_test, SR_RF_yhat_test))
+# Classification report from sklearn library
+#print(metrics.classification_report(SR_y_test, SR_RF_yhat_test))
 
 #################################### CARDINAL, SPARROW, AND ROBIN RANDOM FOREST
 
@@ -1290,19 +1237,12 @@ print("Our_Sensitivity_Score:",Sensitivity)
 
 Specificity = 1/(1+(FP/TN))
 print("Our_Specificity_Score:",Specificity)
-print()
 
 print("BuiltIn_Accuracy:", metrics.accuracy_score(CSR_y_test, CSR_RF_yhat_test))
 print("BuiltIn_Precision:",metrics.precision_score(CSR_y_test, CSR_RF_yhat_test, average='macro'))
 print("BuiltIn_Sensitivity (recall):",metrics.recall_score(CSR_y_test, CSR_RF_yhat_test, average='macro'))
 print()
 
-print(metrics.classification_report(CSR_y_test, CSR_RF_yhat_test))
-
-
-
-
-
-
-
+# Classification report from sklearn library
+#print(metrics.classification_report(CSR_y_test, CSR_RF_yhat_test))
 
